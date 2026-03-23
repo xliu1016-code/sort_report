@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index Page</title>
+</head>
+<body>
+    <!-- 其他內容 -->
+
+    <!-- 新增連結到 bubble_sort_demo.html 的按鈕 -->
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="bubble_sort_demo.html" style="text-decoration: none;">
+            <button style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+                前往 Bubble Sort Demo 頁面
+            </button>
+        </a>
+    </div>
+
+    <!-- 新增連結到 insertion_sort_demo.html 的按鈕 -->
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="insertion_sort_demo.html" style="text-decoration: none;">
+            <button style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+                前往 Insertion Sort Demo 頁面
+            </button>
+        </a>
+    </div>
+
+    <script>
+        if (!isSorting) {
+            init();
+        }
+        
+        randomBtn.addEventListener('click', () => {
+            if (!isSorting) {
+                generateRandomArray();
+            }
+        });
+        
+        speedSlider.addEventListener('input', (e) => {
+            speedValue.textContent = e.target.value + 'ms';
+        });
+        
+        // 初始化頁面
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>氣泡排序法示範</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        #startBtn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        #startBtn:hover {
+            background: #45a049;
+        }
+        
+        #startBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        #resetBtn {
+            background: #2196F3;
+            color: white;
+        }
+        
+        #resetBtn:hover {
+            background: #0b7dda;
+        }
+        
+        #randomBtn {
+            background: #ff9800;
+            color: white;
+        }
+        
+        #randomBtn:hover {
+            background: #e68900;
+        }
+        
+        .visualization {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            height: 300px;
+            margin-bottom: 30px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        
+        .bar {
+            flex: 1;
+            background: #667eea;
+            border-radius: 3px;
+            transition: all 0.1s;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .bar.comparing {
+            background: #ff5722;
+        }
+        
+        .bar.sorted {
+            background: #4CAF50;
+        }
+        
+        .bar.swapping {
+            background: #ffeb3b;
+        }
+        
+        .stats {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            margin: 8px 0;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .stat-label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1565c0;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        #speedSlider {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 氣泡排序法示範</h1>
+        
+        <div class="speed-control">
+            <label for="speedSlider">排序速度:</label>
+            <input type="range" id="speedSlider" min="50" max="500" value="100" step="50">
+            <span id="speedValue">100ms</span>
+        </div>
+        
+        <div class="controls">
+            <button id="randomBtn">隨機產生</button>
+            <button id="startBtn">開始排序</button>
+            <button id="resetBtn">重置</button>
+        </div>
+        
+        <div class="visualization" id="visualization"></div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">比較次數:</span>
+                <span id="comparisons">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">交換次數:</span>
+                <span id="swaps">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">狀態:</span>
+                <span id="status">待機中...</span>
+            </div>
+        </div>
+        
+        <div class="info">
+            <strong>氣泡排序法原理:</strong><br>
+            • 比較相鄰的元素,若順序錯誤則交換<br>
+            • 每一輪都會將最大的數字「浮」到最後<br>
+            • 重複此過程直到整個序列排序完成<br>
+            • 時間複雜度: O(n²) | 空間複雜度: O(1)
+        </div>
+    </div>
+    
+    <script>
+        const visualization = document.getElementById('visualization');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const randomBtn = document.getElementById('randomBtn');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const comparisonsSpan = document.getElementById('comparisons');
+        const swapsSpan = document.getElementById('swaps');
+        const statusSpan = document.getElementById('status');
+        
+        let array = [];
+        let isSorting = false;
+        let comparisons = 0;
+        let swaps = 0;
+        
+        // 初始化
+        function init() {
+            generateRandomArray();
+            render();
+        }
+        
+        // 產生隨機陣列
+        function generateRandomArray() {
+            array = Array.from({ length: 20 }, () => Math.floor(Math.random() * 100) + 1);
+            resetStats();
+            render();
+            statusSpan.textContent = '已產生新陣列';
+        }
+        
+        // 渲染柱狀圖
+        function render() {
+            visualization.innerHTML = '';
+            const maxValue = Math.max(...array);
+            
+            array.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = (value / maxValue) * 100 + '%';
+                bar.textContent = value;
+                bar.id = `bar-${index}`;
+                visualization.appendChild(bar);
+            });
+        }
+        
+        // 交換元素
+        function swap(i, j) {
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        
+        // 重置統計數據
+        function resetStats() {
+            comparisons = 0;
+            swaps = 0;
+            comparisonsSpan.textContent = '0';
+            swapsSpan.textContent = '0';
+        }
+        
+        // 更新統計數據
+        function updateStats() {
+            comparisonsSpan.textContent = comparisons;
+            swapsSpan.textContent = swaps;
+        }
+        
+        // 氣泡排序
+        async function bubbleSort() {
+            isSorting = true;
+            startBtn.disabled = true;
+            randomBtn.disabled = true;
+            resetStats();
+            const speed = 600 - speedSlider.value;
+            const n = array.length;
+            
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    // 標記正在比較的元素
+                    const bar1 = document.getElementById(`bar-${j}`);
+                    const bar2 = document.getElementById(`bar-${j + 1}`);
+                    bar1.classList.add('comparing');
+                    bar2.classList.add('comparing');
+                    
+                    comparisons++;
+                    updateStats();
+                    statusSpan.textContent = `正在比較第 ${j} 和 ${j + 1} 個元素...`;
+                    
+                    await sleep(speed);
+                    
+                    if (array[j] > array[j + 1]) {
+                        // 交換
+                        bar1.classList.remove('comparing');
+                        bar2.classList.remove('comparing');
+                        bar1.classList.add('swapping');
+                        bar2.classList.add('swapping');
+                        
+                        swap(j, j + 1);
+                        swaps++;
+                        updateStats();
+                        statusSpan.textContent = `交換第 ${j} 和 ${j + 1} 個元素`;
+                        
+                        render();
+                        await sleep(speed);
+                    }
+                    
+                    bar1.classList.remove('comparing', 'swapping');
+                    bar2.classList.remove('comparing', 'swapping');
+                }
+                
+                // 將已排序的元素標記為綠色
+                document.getElementById(`bar-${n - i - 1}`).classList.add('sorted');
+            }
+            
+            // 最後一個元素也標記為已排序
+            document.getElementById('bar-0').classList.add('sorted');
+            
+            isSorting = false;
+            startBtn.disabled = false;
+            randomBtn.disabled = false;
+            statusSpan.textContent = '排序完成! ✓';
+        }
+        
+        // 睡眠函式
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // 事件監聽
+        startBtn.addEventListener('click', () => {
+            if (!isSorting) {
+                bubbleSort();
+            }
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            if (!isSorting) {
+                init();
+            }
+        });
+        
+        randomBtn.addEventListener('click', () => {
+            if (!isSorting) {
+                generateRandomArray();
+            }
+        });
+        
+        speedSlider.addEventListener('input', (e) => {
+            speedValue.textContent = e.target.value + 'ms';
+        });
+        
+        // 初始化頁面
+        init();
+    </script>
+</body>
+</html>
